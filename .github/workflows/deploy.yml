@@ -1,9 +1,9 @@
-name: Deploy WordPress to VPS
+name: Deploy Custom WordPress Code Only
 
 on:
   push:
     branches: [ main ]
-  workflow_dispatch: # Allow manual triggers
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -20,52 +20,88 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
-    - name: Test SSH Connection
+    - name: Verify Target Paths Exist
       run: |
-        ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "whoami && pwd"
-
-    - name: Deploy WordPress Files
+        ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "
+          # Verify WordPress directory exists
+          if [ ! -d '${{ secrets.VPS_PATH }}' ]; then
+            echo '❌ WordPress path does not exist: ${{ secrets.VPS_PATH }}'
+            exit 1
+          fi
+          
+          # Verify wp-content structure exists
+          if [ ! -d '${{ secrets.VPS_PATH }}/wp-content' ]; then
+            echo '❌ wp-content directory missing'
+            exit 1
+          fi
+          
+          # Create plugin/theme directories if they don't exist
+          mkdir -p '${{ secrets.VPS_PATH }}/wp-content/plugins'
+          mkdir -p '${{ secrets.VPS_PATH }}/wp-content/themes'
+          
+          echo '✅ Target paths verified'
+        "
+        
+    - name: Deploy Custom Plugin - demaandagavond-engine
       run: |
-        # Sync files with rsync, excluding sensitive files
-        rsync -avz --delete \
-          --exclude='.git/' \
-          --exclude='.github/' \
-          --exclude='wp-config.php' \
-          --exclude='wp-content/uploads/' \
-          --exclude='wp-content/cache/' \
-          --exclude='*.log' \
-          --exclude='.htaccess' \
-          --exclude='PLUGINS.md' \
-          ./ ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}:${{ secrets.VPS_PATH }}/
+        if [ -d "./wp-content/plugins/demaandagavond-engine" ]; then
+          rsync -avz \
+            ./wp-content/plugins/demaandagavond-engine/ \
+            ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}:'${{ secrets.VPS_PATH }}/wp-content/plugins/demaandagavond-engine/'
+          echo '✅ Custom plugin deployed'
+        else
+          echo '⚠️ Custom plugin directory not found in repository'
+        fi
+        
+    - name: Deploy Custom Theme - DMAv7
+      run: |
+        if [ -d "./wp-content/themes/DMAv7" ]; then
+          rsync -avz \
+            ./wp-content/themes/DMAv7/ \
+            ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}:'${{ secrets.VPS_PATH }}/wp-content/themes/DMAv7/'
+          echo '✅ Custom theme deployed'
+        else
+          echo '⚠️ Custom theme directory not found in repository'
+        fi
 
     - name: Set Correct Permissions
       run: |
         ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "
-          # Set ownership to web user
-          sudo chown -R www-data:www-data ${{ secrets.VPS_PATH }}/wp-content/
+          echo 'Setting permissions for custom plugin...'
+          sudo chown -R www-data:www-data '${{ secrets.VPS_PATH }}/wp-content/plugins/demaandagavond-engine/'
+          sudo find '${{ secrets.VPS_PATH }}/wp-content/plugins/demaandagavond-engine/' -type f -exec chmod 644 {} \\;
+          sudo find '${{ secrets.VPS_PATH }}/wp-content/plugins/demaandagavond-engine/' -type d -exec chmod 755 {} \\;
 
-          # Set directory permissions
-          sudo find ${{ secrets.VPS_PATH }}/wp-content/ -type d -exec chmod 755 {} \;
+          echo 'Setting permissions for custom theme...'
+          sudo chown -R www-data:www-data '${{ secrets.VPS_PATH }}/wp-content/themes/DMAv7/'
+          sudo find '${{ secrets.VPS_PATH }}/wp-content/themes/DMAv7/' -type f -exec chmod 644 {} \\;
+          sudo find '${{ secrets.VPS_PATH }}/wp-content/themes/DMAv7/' -type d -exec chmod 755 {} \\;
 
-          # Set file permissions  
-          sudo find ${{ secrets.VPS_PATH }}/wp-content/ -type f -exec chmod 644 {} \;
-
-          # Make sure wp-config.php is protected
-          sudo chmod 600 ${{ secrets.VPS_PATH }}/wp-config.php 2>/dev/null || true
+          if [ -d '${{ secrets.VPS_PATH }}/wp-content/mu-plugins/' ]; then
+            echo 'Setting permissions for mu-plugins...'
+            sudo chown -R www-data:www-data '${{ secrets.VPS_PATH }}/wp-content/mu-plugins/'
+            sudo find '${{ secrets.VPS_PATH }}/wp-content/mu-plugins/' -type f -exec chmod 644 {} \\;
+            sudo find '${{ secrets.VPS_PATH }}/wp-content/mu-plugins/' -type d -exec chmod 755 {} \\;
+          fi
         "
 
-    - name: Clear WordPress Cache (if applicable)
+    - name: Verify Deployment Success
       run: |
         ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "
-          # Clear any WordPress cache
-          sudo rm -rf ${{ secrets.VPS_PATH }}/wp-content/cache/* 2>/dev/null || true
+          echo '🔍 Verifying deployment...'
 
-          # Restart PHP-FPM to clear opcache
-          sudo systemctl reload php7.4-fpm 2>/dev/null || sudo systemctl reload php8.0-fpm 2>/dev/null || sudo systemctl reload php8.1-fpm 2>/dev/null || true
+          # Check plugin files
+          if [ -f '${{ secrets.VPS_PATH }}/wp-content/plugins/demaandagavond-engine/dma_engine.php' ]; then
+            echo '✅ Custom plugin deployed successfully'
+          else
+            echo '❌ Custom plugin deployment failed'
+          fi
+
+          # Check theme files
+          if [ -d '${{ secrets.VPS_PATH }}/wp-content/themes/DMAv7/' ]; then
+            echo '✅ Custom theme deployed successfully'
+            ls -la '${{ secrets.VPS_PATH }}/wp-content/themes/DMAv7/' | head -5
+          else
+            echo '❌ Custom theme deployment failed'
+          fi
         "
-
-    - name: Deployment Success Notification
-      run: |
-        echo "✅ WordPress deployment completed successfully!"
-        echo "📝 Deployed to: ${{ secrets.VPS_HOST }}:${{ secrets.VPS_PATH }}"
-        echo "🔧 Custom plugin 'demaandagavond-engine' updated"
