@@ -1,0 +1,31 @@
+/* -----------------------------------------------------------
+----- Allover admin
+-------------------------------------------------------------- */
+li#wp-admin-bar-comments,
+li#wp-admin-bar-customize {display:none;}
+
+/* -----------------------------------------------------------
+----- Custom Fields
+-------------------------------------------------------------- */
+
+/* -----------------------------------------------------------
+----- Login
+-------------------------------------------------------------- */
+body.login {
+  background-image: url('bg.jpg');
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: center;
+  background-size:cover;
+}
+
+.login h1 a {  background-image: none;}
+
+.wp-core-ui .button-primary {
+	background: #d1bc00;
+    border-color: #ab7e00;
+}
+
+input[type=text]:focus, input[type=search]:focus, input[type=radio]:focus, input[type=tel]:focus, input[type=time]:focus, input[type=url]:focus, input[type=week]:focus, input[type=password]:focus, input[type=checkbox]:focus, input[type=color]:focus, input[type=date]:focus, input[type=datetime]:focus, input[type=datetime-local]:focus, input[type=email]:focus, input[type=month]:focus, input[type=number]:focus, select:focus, textarea:focus { border-color: #ab7e00; box-shadow: 0 0 2px rgba(191, 111, 31, 0.8)}
+
+/* http://premium.wpmudev.org/blog/customize-login-page/ */
