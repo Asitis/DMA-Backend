@@ -1,0 +1,71 @@
+name: Deploy WordPress to VPS
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: # Allow manual triggers
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Setup SSH Key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Test SSH Connection
+      run: |
+        ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "whoami && pwd"
+
+    - name: Deploy WordPress Files
+      run: |
+        # Sync files with rsync, excluding sensitive files
+        rsync -avz --delete \
+          --exclude='.git/' \
+          --exclude='.github/' \
+          --exclude='wp-config.php' \
+          --exclude='wp-content/uploads/' \
+          --exclude='wp-content/cache/' \
+          --exclude='*.log' \
+          --exclude='.htaccess' \
+          --exclude='PLUGINS.md' \
+          ./ ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}:${{ secrets.VPS_PATH }}/
+
+    - name: Set Correct Permissions
+      run: |
+        ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "
+          # Set ownership to web user
+          sudo chown -R www-data:www-data ${{ secrets.VPS_PATH }}/wp-content/
+
+          # Set directory permissions
+          sudo find ${{ secrets.VPS_PATH }}/wp-content/ -type d -exec chmod 755 {} \;
+
+          # Set file permissions  
+          sudo find ${{ secrets.VPS_PATH }}/wp-content/ -type f -exec chmod 644 {} \;
+
+          # Make sure wp-config.php is protected
+          sudo chmod 600 ${{ secrets.VPS_PATH }}/wp-config.php 2>/dev/null || true
+        "
+
+    - name: Clear WordPress Cache (if applicable)
+      run: |
+        ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "
+          # Clear any WordPress cache
+          sudo rm -rf ${{ secrets.VPS_PATH }}/wp-content/cache/* 2>/dev/null || true
+
+          # Restart PHP-FPM to clear opcache
+          sudo systemctl reload php7.4-fpm 2>/dev/null || sudo systemctl reload php8.0-fpm 2>/dev/null || sudo systemctl reload php8.1-fpm 2>/dev/null || true
+        "
+
+    - name: Deployment Success Notification
+      run: |
+        echo "✅ WordPress deployment completed successfully!"
+        echo "📝 Deployed to: ${{ secrets.VPS_HOST }}:${{ secrets.VPS_PATH }}"
+        echo "🔧 Custom plugin 'demaandagavond-engine' updated"
