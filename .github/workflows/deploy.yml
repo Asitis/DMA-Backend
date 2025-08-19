@@ -43,7 +43,7 @@ jobs:
     - name: Deploy Custom Plugin - demaandagavond-engine
       run: |
         if [ -d "./wp-content/plugins/demaandagavond-engine" ]; then
-          rsync -avz \
+          rsync -avz --no-times \
             ./wp-content/plugins/demaandagavond-engine/ \
             ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}:'${{ secrets.VPS_PATH }}/wp-content/plugins/demaandagavond-engine/'
           echo '✅ Custom plugin deployed'
@@ -54,7 +54,7 @@ jobs:
     - name: Deploy Custom Theme - DMAv7
       run: |
         if [ -d "./wp-content/themes/DMAv7" ]; then
-          rsync -avz \
+          rsync -avz --no-times \
             ./wp-content/themes/DMAv7/ \
             ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}:'${{ secrets.VPS_PATH }}/wp-content/themes/DMAv7/'
           echo '✅ Custom theme deployed'
