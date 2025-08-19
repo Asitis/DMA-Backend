@@ -43,7 +43,7 @@ jobs:
     - name: Deploy Custom Plugin - demaandagavond-engine
       run: |
         if [ -d "./wp-content/plugins/demaandagavond-engine" ]; then
-          rsync -avz --no-times \
+          rsync -avz --no-times --no-perms \
             ./wp-content/plugins/demaandagavond-engine/ \
             ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}:'${{ secrets.VPS_PATH }}/wp-content/plugins/demaandagavond-engine/'
           echo '✅ Custom plugin deployed'
@@ -54,7 +54,7 @@ jobs:
     - name: Deploy Custom Theme - DMAv7
       run: |
         if [ -d "./wp-content/themes/DMAv7" ]; then
-          rsync -avz --no-times \
+          rsync -avz --no-times --no-perms \
             ./wp-content/themes/DMAv7/ \
             ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}:'${{ secrets.VPS_PATH }}/wp-content/themes/DMAv7/'
           echo '✅ Custom theme deployed'
@@ -62,26 +62,26 @@ jobs:
           echo '⚠️ Custom theme directory not found in repository'
         fi
 
-    - name: Set Correct Permissions
-      run: |
-        ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "
-          echo 'Setting permissions for custom plugin...'
-          sudo chown -R www-data:www-data '${{ secrets.VPS_PATH }}/wp-content/plugins/demaandagavond-engine/'
-          sudo find '${{ secrets.VPS_PATH }}/wp-content/plugins/demaandagavond-engine/' -type f -exec chmod 644 {} \\;
-          sudo find '${{ secrets.VPS_PATH }}/wp-content/plugins/demaandagavond-engine/' -type d -exec chmod 755 {} \\;
+    # - name: Set Correct Permissions
+    #   run: |
+    #     ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "
+    #       echo 'Setting permissions for custom plugin...'
+    #       sudo chown -R www-data:www-data '${{ secrets.VPS_PATH }}/wp-content/plugins/demaandagavond-engine/'
+    #       sudo find '${{ secrets.VPS_PATH }}/wp-content/plugins/demaandagavond-engine/' -type f -exec chmod 644 {} \\;
+    #       sudo find '${{ secrets.VPS_PATH }}/wp-content/plugins/demaandagavond-engine/' -type d -exec chmod 755 {} \\;
 
-          echo 'Setting permissions for custom theme...'
-          sudo chown -R www-data:www-data '${{ secrets.VPS_PATH }}/wp-content/themes/DMAv7/'
-          sudo find '${{ secrets.VPS_PATH }}/wp-content/themes/DMAv7/' -type f -exec chmod 644 {} \\;
-          sudo find '${{ secrets.VPS_PATH }}/wp-content/themes/DMAv7/' -type d -exec chmod 755 {} \\;
+    #       echo 'Setting permissions for custom theme...'
+    #       sudo chown -R www-data:www-data '${{ secrets.VPS_PATH }}/wp-content/themes/DMAv7/'
+    #       sudo find '${{ secrets.VPS_PATH }}/wp-content/themes/DMAv7/' -type f -exec chmod 644 {} \\;
+    #       sudo find '${{ secrets.VPS_PATH }}/wp-content/themes/DMAv7/' -type d -exec chmod 755 {} \\;
 
-          if [ -d '${{ secrets.VPS_PATH }}/wp-content/mu-plugins/' ]; then
-            echo 'Setting permissions for mu-plugins...'
-            sudo chown -R www-data:www-data '${{ secrets.VPS_PATH }}/wp-content/mu-plugins/'
-            sudo find '${{ secrets.VPS_PATH }}/wp-content/mu-plugins/' -type f -exec chmod 644 {} \\;
-            sudo find '${{ secrets.VPS_PATH }}/wp-content/mu-plugins/' -type d -exec chmod 755 {} \\;
-          fi
-        "
+    #       if [ -d '${{ secrets.VPS_PATH }}/wp-content/mu-plugins/' ]; then
+    #         echo 'Setting permissions for mu-plugins...'
+    #         sudo chown -R www-data:www-data '${{ secrets.VPS_PATH }}/wp-content/mu-plugins/'
+    #         sudo find '${{ secrets.VPS_PATH }}/wp-content/mu-plugins/' -type f -exec chmod 644 {} \\;
+    #         sudo find '${{ secrets.VPS_PATH }}/wp-content/mu-plugins/' -type d -exec chmod 755 {} \\;
+    #       fi
+    #     "
 
     - name: Verify Deployment Success
       run: |
