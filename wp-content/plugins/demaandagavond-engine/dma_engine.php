@@ -255,7 +255,7 @@ function create_dma_genre()
         'labels'                     => $labels,
         'hierarchical'               => true,
         'public'                     => true,
-        'show_in_rest'                  => true,
+        'show_in_rest'               => true,
         'show_ui'                    => true,
         'show_admin_column'          => true,
         'show_in_nav_menus'          => true,
@@ -264,6 +264,82 @@ function create_dma_genre()
     register_taxonomy('genre', array('dma_alba'), $args);
 }
 add_action('init', 'create_dma_genre');
+
+/* -----------------------------------------------------------
+----- 3a. Taxonomy: Style
+-------------------------------------------------------------- */
+function create_dma_style()
+{
+    $labels = array(
+        'name'                       => _x('Styles', 'Taxonomy General Name', 'text_domain'),
+        'singular_name'              => _x('Style', 'Taxonomy Singular Name', 'text_domain'),
+        'menu_name'                  => __('Styles', 'text_domain'),
+        'all_items'                  => __('Alle styles', 'text_domain'),
+        'parent_item'                => __('Parent style', 'text_domain'),
+        'parent_item_colon'          => __('Parent style:', 'text_domain'),
+        'new_item_name'              => __('Nieuwe style', 'text_domain'),
+        'add_new_item'               => __('Voeg nieuwe style toe', 'text_domain'),
+        'edit_item'                  => __('Edit style', 'text_domain'),
+        'update_item'                => __('Update style', 'text_domain'),
+        'view_item'                  => __('Bekijk style', 'text_domain'),
+        'separate_items_with_commas' => __('Scheid styles met een komma', 'text_domain'),
+        'add_or_remove_items'        => __('Verwijder of voeg styles toe', 'text_domain'),
+        'choose_from_most_used'      => __('Kies uit veelgebruikte styles', 'text_domain'),
+        'popular_items'              => __('Populaire styles', 'text_domain'),
+        'search_items'               => __('Doorzoek styles', 'text_domain'),
+        'not_found'                  => __('Niets gevonden', 'text_domain'),
+    );
+    $args = array(
+        'labels'                     => $labels,
+        'hierarchical'               => true,
+        'public'                     => true,
+        'show_in_rest'               => true,
+        'show_ui'                    => true,
+        'show_admin_column'          => true,
+        'show_in_nav_menus'          => true,
+        'show_tagcloud'              => true,
+    );
+    register_taxonomy('style', array('dma_alba'), $args);
+}
+add_action('init', 'create_dma_style');
+
+/* -----------------------------------------------------------
+----- 3a. Taxonomy: Mood
+-------------------------------------------------------------- */
+function create_dma_mood()
+{
+    $labels = array(
+        'name'                       => _x('Moods', 'Taxonomy General Name', 'text_domain'),
+        'singular_name'              => _x('Mood', 'Taxonomy Singular Name', 'text_domain'),
+        'menu_name'                  => __('Moods', 'text_domain'),
+        'all_items'                  => __('Alle moods', 'text_domain'),
+        'parent_item'                => __('Parent mood', 'text_domain'),
+        'parent_item_colon'          => __('Parent mood:', 'text_domain'),
+        'new_item_name'              => __('Nieuwe mood', 'text_domain'),
+        'add_new_item'               => __('Voeg nieuwe mood toe', 'text_domain'),
+        'edit_item'                  => __('Edit mood', 'text_domain'),
+        'update_item'                => __('Update mood', 'text_domain'),
+        'view_item'                  => __('Bekijk mood', 'text_domain'),
+        'separate_items_with_commas' => __('Scheid moods met een komma', 'text_domain'),
+        'add_or_remove_items'        => __('Verwijder of voeg moods toe', 'text_domain'),
+        'choose_from_most_used'      => __('Kies uit veelgebruikte moods', 'text_domain'),
+        'popular_items'              => __('Populaire moods', 'text_domain'),
+        'search_items'               => __('Doorzoek moods', 'text_domain'),
+        'not_found'                  => __('Niets gevonden', 'text_domain'),
+    );
+    $args = array(
+        'labels'                     => $labels,
+        'hierarchical'               => true,
+        'public'                     => true,
+        'show_in_rest'               => true,
+        'show_ui'                    => true,
+        'show_admin_column'          => true,
+        'show_in_nav_menus'          => true,
+        'show_tagcloud'              => true,
+    );
+    register_taxonomy('mood', array('dma_alba'), $args);
+}
+add_action('init', 'create_dma_mood');
 
 /* -----------------------------------------------------------
 ----- 4. Taxonomy: Jaar
