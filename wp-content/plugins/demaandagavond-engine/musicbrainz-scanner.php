@@ -501,7 +501,7 @@ function query_musicbrainz_for_tags($artist, $album)
 
   foreach ($all_tags as $tag) {
     $tag_name = strtolower($tag['name']);
-    $tag_display = $tag['name'];
+    $tag_display = ucwords(strtolower($tag['name']));
 
     // Check if it's a mood
     $is_mood = false;
