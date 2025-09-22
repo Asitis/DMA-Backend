@@ -9,7 +9,7 @@
   Plugin URI: https://www.demaandagavond.nl
   Description: All core WP functionality in one module, so it's theme agnostic
   Author: Alex Timmer
-  Version: 2.0
+  Version: 2.1
   Author URI: http://www.alextimmer.net
 
 	TOC
@@ -22,6 +22,7 @@
 	5. Taxonomy: Label
 	6. Load images from URL as featured images
   7. Filter by tags
+  8. Update column layouts
 */
 
 /* -----------------------------------------------------------
@@ -476,6 +477,7 @@ function acp_editing_saved_usage(AC\Column $column, $id, $value)
   upload_external_image_with_acf($id, $value);
 }
 add_action('acp/editing/saved', 'acp_editing_saved_usage', 10, 3);
+
 /* -----------------------------------------------------------
 ----- 7. Filter by tags
 -------------------------------------------------------------- */
@@ -580,5 +582,77 @@ function label_filter()
       </ul>
     </div>
 
-<?php endif;
+  <?php endif;
 }
+
+/* -----------------------------------------------------------
+----- 8. Update column layouts
+-------------------------------------------------------------- */
+function dma_three_column_metaboxes()
+{
+  ?>
+  <script>
+    jQuery(document).ready(function($) {
+      if ($(window).width() > 1000) {
+        // Create third column
+        var thirdColumn = '<div class="postbox-container" id="postbox-container-3" style="width: 32%; float: right; margin-left: 1%;"><div class="meta-box-sortables" id="side-sortables-3"></div></div>';
+        $('#postbox-container-2').after(thirdColumn);
+
+        // Adjust existing columns
+        $('#post-body-content').css({
+          'width': 'calc(100% - 595px)',
+          'float': 'left',
+          'margin-right': '1%'
+        });
+        $('#postbox-container-2').css({
+          'width': '280px',
+        });
+        $('#postbox-container-3').css({
+          'width': '280px',
+        });
+
+        // Restore saved third column content
+        var savedThirdColumn = localStorage.getItem('dma_third_column_<?php echo get_current_user_id(); ?>_<?php echo get_current_screen()->post_type; ?>');
+        if (savedThirdColumn) {
+          var metaboxIds = JSON.parse(savedThirdColumn);
+          metaboxIds.forEach(function(id) {
+            $('#' + id).appendTo('#side-sortables-3');
+          });
+        } else {
+          // Initial setup - move half the metaboxes
+          var metaboxes = $('#postbox-container-2 .postbox');
+          var moveCount = Math.ceil(metaboxes.length / 2);
+          metaboxes.slice(moveCount).appendTo('#side-sortables-3');
+        }
+
+        // Make all columns sortable
+        $('#side-sortables-3').sortable({
+          connectWith: '.meta-box-sortables',
+          items: '.postbox',
+          handle: '.hndle',
+          cursor: 'move',
+          delay: 150,
+          distance: 2,
+          tolerance: 'pointer',
+          forcePlaceholderSize: true,
+          helper: 'clone',
+          stop: saveThirdColumnState
+        });
+
+        // Also bind to existing sortables to track when items leave/enter third column
+        $('.meta-box-sortables').on('sortstop', saveThirdColumnState);
+      }
+
+      function saveThirdColumnState() {
+        var thirdColumnIds = [];
+        $('#side-sortables-3 .postbox').each(function() {
+          thirdColumnIds.push($(this).attr('id'));
+        });
+        localStorage.setItem('dma_third_column_<?php echo get_current_user_id(); ?>_<?php echo get_current_screen()->post_type; ?>', JSON.stringify(thirdColumnIds));
+      }
+    });
+  </script>
+<?php
+}
+add_action('admin_footer-post.php', 'dma_three_column_metaboxes');
+add_action('admin_footer-post-new.php', 'dma_three_column_metaboxes');
