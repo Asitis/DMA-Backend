@@ -25,6 +25,14 @@
   8. Update column layouts
 */
 
+// Custom logs
+if (!function_exists('write_custom_log')) {
+  function write_custom_log($message) {
+    $timestamp = date("Y-m-d H:i:s");
+    $log_line = "$timestamp - $message\n";
+    file_put_contents(WP_CONTENT_DIR . '/debug.log', $log_line, FILE_APPEND);
+  }
+}
 /* -----------------------------------------------------------
 ----- 0. Includes
 -------------------------------------------------------------- */
